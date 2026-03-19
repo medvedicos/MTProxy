@@ -4,16 +4,54 @@
 
 ## Установка
 
+Быстрая установка с настройками по умолчанию:
+
 ```bash
 curl -sL https://raw.githubusercontent.com/medvedicos/MTProxy/main/install.sh | sudo bash
+```
+
+Установка с параметрами:
+
+```bash
+curl -sL https://raw.githubusercontent.com/medvedicos/MTProxy/main/install.sh | sudo bash -s -- [опции]
+```
+
+## Параметры
+
+| Опция | Описание | По умолчанию |
+|-------|----------|--------------|
+| `-d`, `--domain` | Домен для Fake TLS маскировки | `ya.ru` |
+| `-s`, `--secret` | Свой секретный ключ (32 hex-символа) | автогенерация |
+| `-t`, `--tag` | Тег продвигаемого канала (получить у [@MTProxybot](https://t.me/MTProxybot)) | нет |
+| `-p`, `--port` | Порт для прокси | `443` |
+
+## Примеры
+
+Маскировка под google.com:
+
+```bash
+curl -sL https://raw.githubusercontent.com/medvedicos/MTProxy/main/install.sh | sudo bash -s -- -d google.com
+```
+
+Свой секрет + тег канала:
+
+```bash
+curl -sL https://raw.githubusercontent.com/medvedicos/MTProxy/main/install.sh | sudo bash -s -- -d google.com -s 0123456789abcdef0123456789abcdef -t abc123def456
+```
+
+Указать порт:
+
+```bash
+curl -sL https://raw.githubusercontent.com/medvedicos/MTProxy/main/install.sh | sudo bash -s -- -p 8443
 ```
 
 ## Что делает скрипт
 
 - Устанавливает Docker (если не установлен)
-- Генерирует секрет с Fake TLS (маскировка трафика под обычный HTTPS к ya.ru)
+- Генерирует секрет с Fake TLS (или использует переданный)
 - Находит свободный порт (443 → 8443 → 8444 → 8445)
 - Запускает официальный контейнер `telegrammessenger/proxy`
+- Устанавливает тег продвигаемого канала (если указан)
 - Выводит готовую ссылку `tg://proxy?...` для подключения
 - Сохраняет конфигурацию в `~/mtproto_config.txt`
 
@@ -51,3 +89,7 @@ tg://proxy?server=IP&port=PORT&secret=SECRET
 ```
 
 Откройте её на устройстве с Telegram — прокси подключится автоматически. Или добавьте вручную: **Настройки → Данные и память → Прокси → Добавить прокси**.
+
+## Тег канала
+
+Чтобы получить тег для продвижения канала, напишите [@MTProxybot](https://t.me/MTProxybot) в Telegram. Бот выдаст тег, который нужно передать через `-t`. Пользователи вашего прокси увидят ваш канал в списке рекомендуемых.
