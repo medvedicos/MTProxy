@@ -26,7 +26,7 @@ echo -e "   Используем: ${BLUE}${FAKE_DOMAIN}${NC}"
 echo ""
 
 # Спрашиваем секрет
-echo -e "🔑 Введите свой секретный ключ (32 hex-символа) или нажмите Enter для автогенерации."
+echo -e "🔑 Введите свой секретный ключ целиком (как получили от прокси) или нажмите Enter для автогенерации."
 read -p "   Секрет [автогенерация]: " input_secret
 SECRET="${input_secret}"
 echo ""
@@ -70,8 +70,6 @@ fi
 # Генерируем или используем переданный секрет
 if [ -n "$SECRET" ]; then
     echo -e "🔑 Используем пользовательский секрет"
-    DOMAIN_HEX=$(echo -n "$FAKE_DOMAIN" | xxd -ps | tr -d '\n')
-    SECRET="ee${DOMAIN_HEX}${SECRET}"
     echo -e "   Секрет: ${YELLOW}${SECRET}${NC}"
 else
     echo -n -e "🔑 Генерация Fake TLS секрета... "
