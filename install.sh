@@ -10,56 +10,53 @@ NC='\033[0m'
 # Параметры по умолчанию
 CONTAINER_NAME="mtproto-proxy"
 PORT="443"
-FAKE_DOMAIN="ya.ru"
+FAKE_DOMAIN=""
 SECRET=""
 TAG=""
 
-# Разбор аргументов командной строки
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -d|--domain)
-            FAKE_DOMAIN="$2"
-            shift 2
-            ;;
-        -s|--secret)
-            SECRET="$2"
-            shift 2
-            ;;
-        -t|--tag)
-            TAG="$2"
-            shift 2
-            ;;
-        -p|--port)
-            PORT="$2"
-            shift 2
-            ;;
-        -h|--help)
-            echo "Использование: $0 [опции]"
-            echo ""
-            echo "Опции:"
-            echo "  -d, --domain ДОМЕН    Домен для Fake TLS маскировки (по умолчанию: ya.ru)"
-            echo "  -s, --secret СЕКРЕТ   Свой секретный ключ (32 hex-символа, без префикса ee)"
-            echo "  -t, --tag ТЕГ         Тег продвигаемого канала (получить у @MTProxybot)"
-            echo "  -p, --port ПОРТ       Порт для прокси (по умолчанию: 443)"
-            echo "  -h, --help            Показать эту справку"
-            echo ""
-            echo "Примеры:"
-            echo "  $0"
-            echo "  $0 -d google.com"
-            echo "  $0 -d google.com -s 0123456789abcdef0123456789abcdef -t abc123"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}Неизвестная опция: $1${NC}"
-            echo "Используйте -h для справки"
-            exit 1
-            ;;
-    esac
-done
-
-echo -e "🚀 Запуск MTProto прокси с Fake TLS"
+echo -e "🚀 Установка MTProto прокси с Fake TLS"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "📌 Используем домен: ${BLUE}${FAKE_DOMAIN}${NC}"
+echo ""
+
+# Спрашиваем домен
+echo -e "📌 Введите домен для маскировки Fake TLS (трафик будет выглядеть как HTTPS к этому домену)."
+read -p "   Домен [ya.ru]: " input_domain
+FAKE_DOMAIN="${input_domain:-ya.ru}"
+echo -e "   Используем: ${BLUE}${FAKE_DOMAIN}${NC}"
+echo ""
+
+# Спрашиваем секрет
+echo -e "🔑 Введите свой секретный ключ (32 hex-символа) или нажмите Enter для автогенерации."
+read -p "   Секрет [автогенерация]: " input_secret
+SECRET="${input_secret}"
+echo ""
+
+# Спрашиваем тег канала
+echo -e "📢 Введите тег продвигаемого канала (получить у @MTProxybot) или нажмите Enter, чтобы пропустить."
+read -p "   Тег [пропустить]: " input_tag
+TAG="${input_tag}"
+echo ""
+
+# Спрашиваем порт
+echo -e "🔌 Введите порт для прокси или нажмите Enter для порта по умолчанию."
+read -p "   Порт [443]: " input_port
+PORT="${input_port:-443}"
+echo ""
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e "📌 Домен:  ${BLUE}${FAKE_DOMAIN}${NC}"
+echo -e "🔑 Секрет: ${YELLOW}${SECRET:-автогенерация}${NC}"
+echo -e "📢 Тег:    ${TAG:-нет}"
+echo -e "🔌 Порт:   ${PORT}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+read -p "Всё верно? Начинаем установку? (y/n) [y]: " confirm
+confirm="${confirm:-y}"
+if [[ "$confirm" != "y" && "$confirm" != "Y" && "$confirm" != "д" && "$confirm" != "Д" ]]; then
+    echo -e "${RED}Установка отменена.${NC}"
+    exit 0
+fi
+echo ""
 
 # Проверяем наличие Docker, устанавливаем если нет
 if ! command -v docker &> /dev/null; then
@@ -72,13 +69,11 @@ fi
 
 # Генерируем или используем переданный секрет
 if [ -n "$SECRET" ]; then
-    # Пользователь передал свой секрет — добавляем префикс ee + hex домена
     echo -e "🔑 Используем пользовательский секрет"
     DOMAIN_HEX=$(echo -n "$FAKE_DOMAIN" | xxd -ps | tr -d '\n')
     SECRET="ee${DOMAIN_HEX}${SECRET}"
     echo -e "   Секрет: ${YELLOW}${SECRET}${NC}"
 else
-    # Генерируем автоматически
     echo -n -e "🔑 Генерация Fake TLS секрета... "
     DOMAIN_HEX=$(echo -n "$FAKE_DOMAIN" | xxd -ps | tr -d '\n')
     echo -e "\n   hex домена: ${DOMAIN_HEX}"
