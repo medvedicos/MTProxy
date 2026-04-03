@@ -43,11 +43,19 @@ read -p "   Порт [443]: " input_port
 PORT="${input_port:-443}"
 echo ""
 
+# Спрашиваем имя контейнера
+echo -e "🐳 Введите имя Docker-контейнера (уникальное для каждого экземпляра прокси)."
+read -p "   Имя контейнера [mtproto-proxy]: " input_name
+CONTAINER_NAME="${input_name:-mtproto-proxy}"
+echo -e "   Используем: ${BLUE}${CONTAINER_NAME}${NC}"
+echo ""
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "📌 Домен:  ${BLUE}${FAKE_DOMAIN}${NC}"
-echo -e "🔑 Секрет: ${YELLOW}${SECRET:-автогенерация}${NC}"
-echo -e "📢 Тег:    ${TAG:-нет}"
-echo -e "🔌 Порт:   ${PORT}"
+echo -e "📌 Домен:      ${BLUE}${FAKE_DOMAIN}${NC}"
+echo -e "🔑 Секрет:     ${YELLOW}${SECRET:-автогенерация}${NC}"
+echo -e "📢 Тег:        ${TAG:-нет}"
+echo -e "🔌 Порт:       ${PORT}"
+echo -e "🐳 Контейнер:  ${CONTAINER_NAME}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 read -p "Всё верно? Начинаем установку? (y/n) [y]: " confirm
@@ -128,6 +136,7 @@ if sudo docker ps | grep -q ${CONTAINER_NAME}; then
     echo ""
     echo "📊 ИНФОРМАЦИЯ ДЛЯ ПОДКЛЮЧЕНИЯ:"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "🐳 Контейнер: ${CONTAINER_NAME}"
     echo "🌐 Сервер: ${SERVER_IP}"
     echo "🔌 Порт: ${PORT}"
     echo "🔑 Секрет: ${SECRET}"
@@ -139,7 +148,8 @@ if sudo docker ps | grep -q ${CONTAINER_NAME}; then
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     # Сохраняем конфигурацию
-    cat > ~/mtproto_config.txt << EOF
+    cat > ~/${CONTAINER_NAME}_config.txt << EOF
+CONTAINER=${CONTAINER_NAME}
 SERVER=${SERVER_IP}
 PORT=${PORT}
 SECRET=${SECRET}
@@ -147,7 +157,7 @@ DOMAIN=${FAKE_DOMAIN}
 TAG=${TAG}
 LINK=tg://proxy?server=${SERVER_IP}&port=${PORT}&secret=${SECRET}
 EOF
-    echo "✅ Конфигурация сохранена в ~/mtproto_config.txt"
+    echo "✅ Конфигурация сохранена в ~/${CONTAINER_NAME}_config.txt"
 
     # Показываем последние логи
     echo ""
